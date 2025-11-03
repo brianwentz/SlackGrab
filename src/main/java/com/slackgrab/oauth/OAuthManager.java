@@ -194,23 +194,69 @@ public class OAuthManager {
         try {
             logger.info("Refreshing access token...");
 
-            // Call Slack OAuth API to refresh token
-            // Note: As of now, Slack SDK might not have direct refresh method
-            // We'll need to make manual HTTP call or wait for SDK update
-            // For now, throwing exception to indicate re-authorization needed
-
-            throw new OAuthException(
-                "Token refresh not yet implemented. User must re-authorize. " +
-                "Slack Java SDK pending refresh token support."
+            // Use Slack SDK's OAuth API with refresh token grant
+            OAuthV2AccessResponse response = slack.methods().oauthV2Access(req -> req
+                .clientId(CLIENT_ID)
+                .clientSecret(CLIENT_SECRET)
+                .grantType("refresh_token")
+                .refreshToken(refreshToken.get())
             );
 
-            // TODO: Implement when Slack Java SDK adds refresh token support
-            // or implement manual HTTP POST to https://slack.com/api/oauth.v2.access
+            if (!response.isOk()) {
+                String error = response.getError() != null ? response.getError() : "Unknown error";
+                logger.error("Token refresh failed: {}", error);
+                throw new OAuthException("Token refresh failed: " + error);
+            }
 
-        } catch (Exception e) {
+            // Extract new tokens
+            String newAccessToken = response.getAccessToken();
+            String newRefreshToken = response.getRefreshToken();
+
+            if (newAccessToken == null || newAccessToken.isEmpty()) {
+                throw new OAuthException("New access token not received from Slack");
+            }
+
+            // Update stored tokens
+            boolean tokensStored = credentialManager.storeAccessToken(newAccessToken);
+            if (newRefreshToken != null && !newRefreshToken.isEmpty()) {
+                tokensStored &= credentialManager.storeRefreshToken(newRefreshToken);
+            }
+
+            if (!tokensStored) {
+                logger.error("Failed to store refreshed tokens");
+                throw new OAuthException("Failed to securely store refreshed tokens");
+            }
+
+            logger.info("Access token refreshed successfully");
+            return newAccessToken;
+
+        } catch (IOException | SlackApiException e) {
             errorHandler.handleError("Failed to refresh access token", e);
             throw new OAuthException("Failed to refresh access token: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Check if an exception indicates an expired token
+     *
+     * @param exception Exception to check
+     * @return true if exception indicates expired or invalid token
+     */
+    public boolean isTokenExpired(Exception exception) {
+        if (exception instanceof SlackApiException) {
+            SlackApiException slackException = (SlackApiException) exception;
+            String error = slackException.getError() != null ? slackException.getError().getError() : "";
+
+            // Check for token expiration errors
+            return "invalid_auth".equals(error) ||
+                   "token_expired".equals(error) ||
+                   "token_revoked".equals(error) ||
+                   "account_inactive".equals(error);
+        }
+
+        // Check error message for HTTP 401 Unauthorized
+        String message = exception.getMessage();
+        return message != null && message.contains("401");
     }
 
     /**

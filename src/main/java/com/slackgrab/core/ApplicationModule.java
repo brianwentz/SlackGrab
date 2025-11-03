@@ -10,6 +10,9 @@ import com.slackgrab.oauth.OAuthManager;
 import com.slackgrab.security.CredentialManager;
 import com.slackgrab.slack.MessageCollector;
 import com.slackgrab.slack.SlackApiClient;
+import com.slackgrab.ui.AutoStartManager;
+import com.slackgrab.ui.StatusWindow;
+import com.slackgrab.ui.SystemTrayManager;
 import com.slackgrab.webhook.WebhookServer;
 
 /**
@@ -44,5 +47,10 @@ public class ApplicationModule extends AbstractModule {
 
         // Webhook service
         bind(WebhookServer.class).in(Singleton.class);
+
+        // UI services
+        bind(AutoStartManager.class).in(Singleton.class);
+        bind(StatusWindow.class).in(Singleton.class);
+        bind(SystemTrayManager.class).in(Singleton.class);
     }
 }
