@@ -2,6 +2,7 @@ package com.slackgrab.core;
 
 import com.google.inject.Inject;
 import com.slackgrab.data.DatabaseManager;
+import com.slackgrab.ui.SystemTrayManager;
 import com.slackgrab.webhook.WebhookServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ public class ServiceCoordinator {
     private final ErrorHandler errorHandler;
     private final DatabaseManager databaseManager;
     private final WebhookServer webhookServer;
+    private final SystemTrayManager systemTrayManager;
 
     private final List<ManagedService> services;
     private boolean started = false;
@@ -30,16 +32,20 @@ public class ServiceCoordinator {
             ConfigurationManager configurationManager,
             ErrorHandler errorHandler,
             DatabaseManager databaseManager,
-            WebhookServer webhookServer) {
+            WebhookServer webhookServer,
+            SystemTrayManager systemTrayManager) {
         this.configurationManager = configurationManager;
         this.errorHandler = errorHandler;
         this.databaseManager = databaseManager;
         this.webhookServer = webhookServer;
+        this.systemTrayManager = systemTrayManager;
 
         // Initialize service list in startup order
+        // System tray should start last so UI is ready after all services
         this.services = new ArrayList<>();
         services.add(databaseManager);
         services.add(webhookServer);
+        services.add(systemTrayManager);
     }
 
     /**

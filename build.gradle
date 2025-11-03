@@ -43,9 +43,13 @@ ext {
     bouncyCastleVersion = '1.77'
     commonsCryptoVersion = '1.2.0'
 
+    // Machine Learning
+    dl4jVersion = '1.0.0-M2.1'
+    nd4jVersion = '1.0.0-M2.1'
+
     // Testing
     junitVersion = '5.10.1'
-    mockitoVersion = '5.10.0'
+    mockitoVersion = '5.20.0'
     assertjVersion = '3.25.2'
     wiremockVersion = '3.0.1'
 }
@@ -92,6 +96,14 @@ dependencies {
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "ch.qos.logback:logback-classic:${logbackVersion}"
     implementation "ch.qos.logback:logback-core:${logbackVersion}"
+
+    // Machine Learning - DeepLearning4J
+    implementation "org.deeplearning4j:deeplearning4j-core:${dl4jVersion}"
+    implementation "org.nd4j:nd4j-native-platform:${nd4jVersion}"
+    implementation "org.deeplearning4j:deeplearning4j-nlp:${dl4jVersion}"
+
+    // ND4J backends (CPU with fallback capability)
+    implementation "org.nd4j:nd4j-native:${nd4jVersion}:windows-x86_64"
 
     // Testing
     testImplementation platform("org.junit:junit-bom:${junitVersion}")
