@@ -1,0 +1,46 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/brian/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+The message received from the daemon indicates that the daemon has disappeared.
+Build request sent: Build{id=f303b1c6-5581-4122-97af-54c969cb3693, currentDir=C:\Users\brian\source\repos\SlackGrab}
+Attempting to read last messages from the daemon log...
+Daemon pid: 21196
+  log file: C:\Users\brian\.gradle\daemon\9.2.0\daemon-21196.out.log
+----- Last 20 lines from daemon log file - daemon-21196.out.log -----
+2025-11-03T11:08:11.525+0100 [DEBUG] [org.gradle.launcher.daemon.server.DefaultIncomingConnectionHandler] Starting executing command: Build{id=f303b1c6-5581-4122-97af-54c969cb3693, currentDir=C:\Users\brian\source\repos\SlackGrab} with connection: socket connection from /127.0.0.1:50641 to /127.0.0.1:50642.
+2025-11-03T11:08:11.528+0100 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Command execution: started DaemonCommandExecution[command = Build{id=f303b1c6-5581-4122-97af-54c969cb3693, currentDir=C:\Users\brian\source\repos\SlackGrab}, connection = DefaultDaemonConnection: socket connection from /127.0.0.1:50641 to /127.0.0.1:50642] after 0.0022833333333333334 minutes of idle
+2025-11-03T11:08:11.528+0100 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Marking the daemon as busy, address: [4b59d7bf-2527-4d9f-aedd-5934d3494151 port:50641, addresses:[localhost/127.0.0.1]]
+2025-11-03T11:08:11.528+0100 [DEBUG] [org.gradle.launcher.daemon.registry.PersistentDaemonRegistry] Marking busy by address: [4b59d7bf-2527-4d9f-aedd-5934d3494151 port:50641, addresses:[localhost/127.0.0.1]]
+2025-11-03T11:08:11.529+0100 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2025-11-03T11:08:11.530+0100 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2025-11-03T11:08:11.532+0100 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2025-11-03T11:08:11.533+0100 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] resetting idle timer
+2025-11-03T11:08:11.534+0100 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2025-11-03T11:08:11.536+0100 [INFO] [org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy] Daemon is about to start building Build{id=f303b1c6-5581-4122-97af-54c969cb3693, currentDir=C:\Users\brian\source\repos\SlackGrab}. Dispatching build started information...
+2025-11-03T11:08:11.536+0100 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 49: dispatching org.gradle.launcher.daemon.protocol.BuildStarted@41c5ef73
+2025-11-03T11:08:11.539+0100 [DEBUG] [org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment] Configuring env variables: [PATH, PKG_CONFIG_PATH, NVM_SYMLINK, CONFIG_SITE, SESSIONNAME, ALLUSERSPROFILE, ANDROID_HOME, COREPACK_ENABLE_AUTO_PIN, ORIGINAL_TEMP, PROGRAMFILES, USERNAME, PWD, ProgramFiles(x86), ACSetupSvcPort, PATHEXT, DriverData, LIBJABRA_TRACE_LEVEL, ORIGINAL_TMP, NoDefaultCurrentDirectoryInExePath, HOMEPATH, PROCESSOR_IDENTIFIER, PUBLIC, EXEPATH, SHLVL, ZES_ENABLE_SYSMAN, ORIGINAL_PATH, IntelliJ IDEA, JAVA_HOME, PROMPT, GIT_EDITOR, DataGrip, TERM, WebStorm, RlsSvcPort, MSYSTEM, OneDrive, APPDATA, ChocolateyInstall, PyCharm, MSYS, COMPUTERNAME, ACLOCAL_PATH, TERMINAL_EMULATOR, MSYSTEM_CARCH, HOMEDRIVE, NUMBER_OF_PROCESSORS, EFC_12144_1592913036, GoLand, PKG_CONFIG_SYSTEM_LIBRARY_PATH, USERDOMAIN_ROAMINGPROFILE, MSYSTEM_PREFIX, PROCESSOR_LEVEL, SYSTEMDRIVE, JABRA_NATIVE_BLUETOOTH, OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE, PROCESSOR_ARCHITECTURE, MSYSTEM_CHOST, PSModulePath, CLAUDE_CODE_ENTRYPOINT, ACSvcPort, CLAUDECODE, INFOPATH, PKG_CONFIG_SYSTEM_INCLUDE_PATH, SHELL, OneDriveConsumer, GITHUB_TOKEN, OLDPWD, TMPDIR, WINDIR, ProgramData, ProgramW6432, SSH_ASKPASS, GITHUB_ACTOR, MINGW_CHOST, PhpStorm, LOCALAPPDATA, ChocolateyLastPathUpdate, MANPATH, MINGW_PACKAGE_PREFIX, USERDOMAIN, LOGONSERVER, WIX, PLINK_PROTOCOL, LANG, MINGW_PREFIX, DISPLAY, SYSTEMROOT, OS, COMMONPROGRAMFILES, COMSPEC, NVM_HOME, PROCESSOR_REVISION, CommonProgramW6432, TEMP, HOSTNAME, USERPROFILE, TMP, CommonProgramFiles(x86), HOME]
+2025-11-03T11:08:11.549+0100 [DEBUG] [org.gradle.launcher.daemon.server.exec.LogToClient] About to start relaying all logs to the client via the connection.
+2025-11-03T11:08:11.549+0100 [INFO] [org.gradle.launcher.daemon.server.exec.LogToClient] The client will now receive all logging from the daemon (pid: 21196). The daemon log file: C:\Users\brian\.gradle\daemon\9.2.0\daemon-21196.out.log
+2025-11-03T11:08:11.551+0100 [DEBUG] [org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon] Requesting daemon stop after processing Build{id=f303b1c6-5581-4122-97af-54c969cb3693, currentDir=C:\Users\brian\source\repos\SlackGrab}
+2025-11-03T11:08:11.551+0100 [LIFECYCLE] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Daemon will be stopped at the end of the build 
+2025-11-03T11:08:11.551+0100 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Stop as soon as idle requested. The daemon is busy
+2025-11-03T11:08:11.551+0100 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon stop has been requested. Sleeping until state changes.
+2025-11-03T11:08:11.554+0100 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] The daemon has started executing the build.
+2025-11-03T11:08:11.554+0100 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] Executing build with daemon context: DefaultDaemonContext[uid=c8163f2b-07ab-4131-8ded-dfe3f1254ee4,javaHome=C:\Users\brian\AppData\Local\Programs\Microsoft\jdk-25.0.1.8-hotspot,javaVersion=25,javaVendor=Microsoft,daemonRegistryDir=C:\Users\brian\.gradle\daemon,pid=21196,idleTimeout=120000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=384m,-XX:+HeapDumpOnOutOfMemoryError,-Xms256m,-Xmx512m,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]----- End of the daemon log -----
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+> Task :compileJava

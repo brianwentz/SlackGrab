@@ -1,0 +1,50 @@
+	... 5 common frames omitted
+Caused by: java.net.BindException: Address already in use: bind
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:335)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:297)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 20 common frames omitted
+2025-11-03 09:19:15.537 [Thread-1] INFO  com.slackgrab.SlackGrabApplication - Shutting down SlackGrab...
+2025-11-03 09:19:15.537 [Thread-1] WARN  c.slackgrab.core.ServiceCoordinator - Services not started, nothing to shutdown
+2025-11-03 09:19:15.537 [Thread-1] INFO  com.slackgrab.SlackGrabApplication - SlackGrab shutdown complete
+2025-11-03 09:40:44.248 [main] INFO  com.slackgrab.SlackGrabApplication - SlackGrab starting...
+2025-11-03 09:40:44.248 [main] INFO  com.slackgrab.SlackGrabApplication - Initializing SlackGrab application...
+2025-11-03 09:40:44.399 [main] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:40:44.400 [main] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:40:44.400 [main] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:40:44.401 [main] INFO  com.slackgrab.data.DatabaseManager - Database manager initialized. Database file: C:\Users\brian\AppData\Local\SlackGrab\database\slackgrab.db
+2025-11-03 09:40:44.401 [main] INFO  com.slackgrab.SlackGrabApplication - Dependency injection configured
+2025-11-03 09:40:44.402 [main] INFO  com.slackgrab.SlackGrabApplication - Starting SlackGrab services...
+2025-11-03 09:40:44.402 [main] INFO  c.slackgrab.core.ServiceCoordinator - Starting 2 services...
+2025-11-03 09:40:44.402 [main] INFO  c.slackgrab.core.ServiceCoordinator - Starting service: DatabaseManager
+2025-11-03 09:40:44.402 [main] INFO  com.slackgrab.data.DatabaseManager - Starting database manager...
+2025-11-03 09:40:44.596 [main] INFO  com.slackgrab.data.DatabaseManager - Initializing database schema...
+2025-11-03 09:40:44.596 [main] INFO  com.slackgrab.data.DatabaseManager - Database schema initialized successfully
+2025-11-03 09:40:44.596 [main] INFO  com.slackgrab.data.DatabaseManager - Database manager started successfully
+2025-11-03 09:40:44.596 [main] INFO  c.slackgrab.core.ServiceCoordinator - Service started successfully: DatabaseManager
+2025-11-03 09:40:44.596 [main] INFO  c.slackgrab.core.ServiceCoordinator - Starting service: WebhookServer
+2025-11-03 09:40:44.596 [main] INFO  com.slackgrab.webhook.WebhookServer - Starting webhook server...
+2025-11-03 09:40:44.872 [main] INFO  com.slackgrab.webhook.WebhookServer - Webhook server started on localhost:7395
+2025-11-03 09:40:44.873 [main] INFO  c.slackgrab.core.ServiceCoordinator - Service started successfully: WebhookServer
+2025-11-03 09:40:44.873 [main] INFO  c.slackgrab.core.ServiceCoordinator - All services started successfully
+2025-11-03 09:40:44.873 [main] INFO  com.slackgrab.SlackGrabApplication - SlackGrab started successfully
+2025-11-03 09:41:25.563 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.564 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.564 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:41:25.611 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.611 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.611 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:41:25.615 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.615 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.615 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:41:25.617 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.617 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.617 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:41:25.621 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.622 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.622 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab
+2025-11-03 09:41:25.628 [Test worker] INFO  c.s.core.ConfigurationManager - Initializing configuration manager...
+2025-11-03 09:41:25.630 [Test worker] INFO  c.s.core.ConfigurationManager - Application directories created successfully
+2025-11-03 09:41:25.630 [Test worker] INFO  c.s.core.ConfigurationManager - Configuration initialized. App data path: C:\Users\brian\AppData\Local\SlackGrab

@@ -1,0 +1,207 @@
+package com.slackgrab.data;
+
+import com.google.inject.Inject;
+import com.slackgrab.core.ConfigurationManager;
+import com.slackgrab.core.ErrorHandler;
+import com.slackgrab.core.ManagedService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/**
+ * SQLite database manager with connection pooling
+ *
+ * Provides schema management and connection access for local data storage.
+ * Uses HikariCP connection pooling for efficient database operations.
+ */
+public class DatabaseManager implements ManagedService {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
+
+    private final ConfigurationManager configurationManager;
+    private final ErrorHandler errorHandler;
+    private final ConnectionPool connectionPool;
+
+    private final Path databaseFile;
+
+    @Inject
+    public DatabaseManager(ConfigurationManager configurationManager, ErrorHandler errorHandler, ConnectionPool connectionPool) {
+        this.configurationManager = configurationManager;
+        this.errorHandler = errorHandler;
+        this.connectionPool = connectionPool;
+        this.databaseFile = configurationManager.getDatabasePath().resolve("slackgrab.db");
+
+        logger.info("Database manager initialized. Database file: {}", databaseFile);
+    }
+
+    @Override
+    public void start() throws Exception {
+        logger.info("Starting database manager...");
+
+        try {
+            // Load SQLite JDBC driver
+            Class.forName("org.sqlite.JDBC");
+
+            // Verify connection pool is ready
+            if (!connectionPool.isReady()) {
+                throw new SQLException("Connection pool is not ready");
+            }
+
+            // Initialize database schema using a connection from the pool
+            initializeSchema();
+
+            logger.info("Database manager started successfully");
+        } catch (Exception e) {
+            errorHandler.handleCriticalError("Failed to start database manager", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public void stop() throws Exception {
+        logger.info("Stopping database manager...");
+
+        try {
+            // Close the connection pool
+            connectionPool.close();
+            logger.info("Database connection pool closed");
+        } catch (Exception e) {
+            errorHandler.handleError("Error closing connection pool", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Initialize database schema
+     */
+    private void initializeSchema() throws SQLException {
+        logger.info("Initializing database schema...");
+
+        try (Connection conn = connectionPool.getConnection();
+             Statement stmt = conn.createStatement()) {
+            // Messages table
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id TEXT PRIMARY KEY,
+                    channel_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    text TEXT,
+                    timestamp REAL NOT NULL,
+                    thread_ts TEXT,
+                    has_attachments BOOLEAN DEFAULT FALSE,
+                    has_reactions BOOLEAN DEFAULT FALSE,
+                    importance_score REAL,
+                    importance_level TEXT,
+                    created_at INTEGER NOT NULL
+                )
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_channel_timestamp
+                ON messages (channel_id, timestamp)
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_importance
+                ON messages (importance_level, timestamp)
+            """);
+
+            // User interactions table (for learning)
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS user_interactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    message_id TEXT NOT NULL,
+                    interaction_type TEXT NOT NULL,
+                    interaction_timestamp INTEGER NOT NULL,
+                    reading_time_ms INTEGER,
+                    FOREIGN KEY (message_id) REFERENCES messages(id)
+                )
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_interactions_message_id
+                ON user_interactions (message_id)
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_interactions_timestamp
+                ON user_interactions (interaction_timestamp)
+            """);
+
+            // Feedback table
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    message_id TEXT NOT NULL,
+                    feedback_type TEXT NOT NULL,
+                    original_score REAL,
+                    timestamp INTEGER NOT NULL,
+                    FOREIGN KEY (message_id) REFERENCES messages(id)
+                )
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_feedback_message_id
+                ON feedback (message_id)
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_feedback_timestamp
+                ON feedback (timestamp)
+            """);
+
+            // Channels table
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS channels (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    is_private BOOLEAN DEFAULT FALSE,
+                    member_count INTEGER,
+                    last_synced INTEGER
+                )
+            """);
+
+            stmt.execute("""
+                CREATE INDEX IF NOT EXISTS idx_channels_name
+                ON channels (name)
+            """);
+
+            // System state table
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS system_state (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at INTEGER NOT NULL
+                )
+            """);
+
+            logger.info("Database schema initialized successfully");
+        }
+    }
+
+    /**
+     * Get a database connection from the pool
+     *
+     * IMPORTANT: The returned connection MUST be closed (via try-with-resources)
+     * to return it to the pool. Closing does not destroy the connection - it
+     * returns it to the pool for reuse.
+     *
+     * @return Database connection from pool
+     * @throws SQLException If connection cannot be obtained
+     */
+    public Connection getConnection() throws SQLException {
+        return connectionPool.getConnection();
+    }
+
+    /**
+     * Check if database is ready
+     *
+     * @return true if database is connected and ready
+     */
+    public boolean isReady() {
+        return connectionPool.isReady();
+    }
+}
