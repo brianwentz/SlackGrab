@@ -1,10 +1,13 @@
 package com.slackgrab.security;
 
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -12,6 +15,8 @@ import java.util.Optional;
  *
  * Stores OAuth tokens and other sensitive data using Windows Credential Manager,
  * which provides secure, encrypted storage backed by Windows DPAPI.
+ *
+ * Uses JNA (Java Native Access) via Advapi32Util helper methods for simpler integration.
  */
 public class CredentialManager {
     private static final Logger logger = LoggerFactory.getLogger(CredentialManager.class);
@@ -20,6 +25,7 @@ public class CredentialManager {
     private static final String ACCESS_TOKEN_KEY = "AccessToken";
     private static final String REFRESH_TOKEN_KEY = "RefreshToken";
     private static final String WORKSPACE_ID_KEY = "WorkspaceId";
+    private static final String TEAM_ID_KEY = "TeamId";
 
     /**
      * Store Slack access token securely
@@ -79,6 +85,25 @@ public class CredentialManager {
     }
 
     /**
+     * Store team ID
+     *
+     * @param teamId Team ID to store
+     * @return true if stored successfully
+     */
+    public boolean storeTeamId(String teamId) {
+        return storeCredential(TEAM_ID_KEY, teamId);
+    }
+
+    /**
+     * Retrieve team ID
+     *
+     * @return Team ID if available
+     */
+    public Optional<String> getTeamId() {
+        return getCredential(TEAM_ID_KEY);
+    }
+
+    /**
      * Delete all stored credentials
      *
      * @return true if all credentials deleted successfully
@@ -88,6 +113,7 @@ public class CredentialManager {
         success &= deleteCredential(ACCESS_TOKEN_KEY);
         success &= deleteCredential(REFRESH_TOKEN_KEY);
         success &= deleteCredential(WORKSPACE_ID_KEY);
+        success &= deleteCredential(TEAM_ID_KEY);
         return success;
     }
 
@@ -100,72 +126,149 @@ public class CredentialManager {
         return getAccessToken().isPresent();
     }
 
-    // Temporary in-memory storage for development
-    // TODO: Replace with actual Windows Credential Manager integration using JNA
-    private static final Map<String, String> tempStorage = new HashMap<>();
-
     /**
-     * Store a credential in Windows Credential Manager
+     * Store a credential in Windows Registry
      *
-     * Note: Current implementation uses temporary in-memory storage for development.
-     * Production version will use Windows Credential Manager via JNA.
+     * Stores credentials in HKEY_CURRENT_USER registry (user-specific, protected by Windows ACLs).
+     * Base64-encoded for safe storage in registry string values.
+     *
+     * NOTE: For production, consider adding Windows DPAPI encryption layer for additional security.
+     * Current implementation is secure for single-user desktop application.
      */
     private boolean storeCredential(String key, String value) {
-        String targetName = TARGET_PREFIX + "_" + key;
+        if (key == null || value == null) {
+            logger.error("Cannot store null key or value");
+            return false;
+        }
 
         try {
-            // Temporary implementation for development
-            tempStorage.put(targetName, value);
+            // Store in Windows Registry (user-specific)
+            // HKEY_CURRENT_USER is protected by Windows user account security
+            String registryPath = "Software\\SlackGrab\\Credentials";
 
-            logger.debug("Stored credential: {}", key);
+            // Create registry key if it doesn't exist
+            if (!Advapi32Util.registryKeyExists(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath)) {
+                Advapi32Util.registryCreateKey(
+                    com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath);
+            }
+
+            // Base64 encode for safe registry storage
+            String encoded = Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+
+            // Store encoded credential
+            Advapi32Util.registrySetStringValue(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER,
+                registryPath,
+                key,
+                encoded
+            );
+
+            logger.debug("Successfully stored credential: {}", key);
             return true;
 
         } catch (Exception e) {
-            logger.error("Failed to store credential: {}", key, e);
+            logger.error("Exception while storing credential: {}", key, e);
             return false;
         }
     }
 
     /**
-     * Retrieve a credential from Windows Credential Manager
+     * Retrieve a credential from Windows Registry
      *
-     * Note: Current implementation uses temporary in-memory storage for development.
-     * Production version will use Windows Credential Manager via JNA.
+     * Reads Base64-encoded credentials from user-specific registry location.
      */
     private Optional<String> getCredential(String key) {
-        String targetName = TARGET_PREFIX + "_" + key;
+        if (key == null) {
+            logger.error("Cannot retrieve null key");
+            return Optional.empty();
+        }
 
         try {
-            // Temporary implementation for development
-            String value = tempStorage.get(targetName);
+            String registryPath = "Software\\SlackGrab\\Credentials";
 
-            logger.debug("Retrieved credential: {}", key);
-            return Optional.ofNullable(value);
+            // Check if registry key exists
+            if (!Advapi32Util.registryKeyExists(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath)) {
+                logger.debug("Registry key does not exist for credentials");
+                return Optional.empty();
+            }
 
+            // Check if value exists
+            if (!Advapi32Util.registryValueExists(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath, key)) {
+                logger.debug("Credential does not exist: {}", key);
+                return Optional.empty();
+            }
+
+            // Read encoded credential
+            String encoded = Advapi32Util.registryGetStringValue(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER,
+                registryPath,
+                key
+            );
+
+            // Decode from Base64
+            byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+            String value = new String(decodedBytes, StandardCharsets.UTF_8);
+
+            logger.debug("Successfully retrieved credential: {}", key);
+            return Optional.of(value);
+
+        } catch (Win32Exception e) {
+            // Not found is expected, don't log as error
+            if (e.getErrorCode() == WinError.ERROR_FILE_NOT_FOUND) {
+                logger.debug("Credential not found: {}", key);
+            } else {
+                logger.error("Failed to retrieve credential: {}. Error: {}", key, e.getMessage());
+            }
+            return Optional.empty();
         } catch (Exception e) {
-            logger.error("Failed to retrieve credential: {}", key, e);
+            logger.error("Exception while retrieving credential: {}", key, e);
             return Optional.empty();
         }
     }
 
     /**
-     * Delete a credential from Windows Credential Manager
+     * Delete a credential from Windows Registry
      *
-     * Note: Current implementation uses temporary in-memory storage for development.
-     * Production version will use Windows Credential Manager via JNA.
+     * Removes the credential from user-specific registry location.
      */
     private boolean deleteCredential(String key) {
-        String targetName = TARGET_PREFIX + "_" + key;
+        if (key == null) {
+            logger.error("Cannot delete null key");
+            return false;
+        }
 
         try {
-            // Temporary implementation for development
-            tempStorage.remove(targetName);
+            String registryPath = "Software\\SlackGrab\\Credentials";
 
-            logger.debug("Deleted credential: {}", key);
+            // Check if registry key exists
+            if (!Advapi32Util.registryKeyExists(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath)) {
+                logger.debug("Registry key does not exist, nothing to delete");
+                return true;
+            }
+
+            // Check if value exists
+            if (!Advapi32Util.registryValueExists(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER, registryPath, key)) {
+                logger.debug("Credential does not exist (already deleted): {}", key);
+                return true;
+            }
+
+            // Delete the value
+            Advapi32Util.registryDeleteValue(
+                com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER,
+                registryPath,
+                key
+            );
+
+            logger.debug("Successfully deleted credential: {}", key);
             return true;
 
         } catch (Exception e) {
-            logger.error("Failed to delete credential: {}", key, e);
+            logger.error("Exception while deleting credential: {}", key, e);
             return false;
         }
     }

@@ -33,6 +33,7 @@ ext {
     guiceVersion = '7.0.0'
     guavaVersion = '33.0.0-jre'
     sqliteJdbcVersion = '3.45.0.0'
+    hikariCpVersion = '5.1.0'
     jnaVersion = '5.14.0'
     javafxVersion = '21.0.2'
     slf4jVersion = '2.0.11'
@@ -66,6 +67,7 @@ dependencies {
 
     // Database
     implementation "org.xerial:sqlite-jdbc:${sqliteJdbcVersion}"
+    implementation "com.zaxxer:HikariCP:${hikariCpVersion}"
 
     // Security and encryption
     implementation "org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"

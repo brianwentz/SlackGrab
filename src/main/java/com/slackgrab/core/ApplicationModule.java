@@ -2,8 +2,13 @@ package com.slackgrab.core;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.slackgrab.data.ChannelRepository;
+import com.slackgrab.data.ConnectionPool;
 import com.slackgrab.data.DatabaseManager;
+import com.slackgrab.data.MessageRepository;
+import com.slackgrab.oauth.OAuthManager;
 import com.slackgrab.security.CredentialManager;
+import com.slackgrab.slack.MessageCollector;
 import com.slackgrab.slack.SlackApiClient;
 import com.slackgrab.webhook.WebhookServer;
 
@@ -22,13 +27,20 @@ public class ApplicationModule extends AbstractModule {
         bind(ServiceCoordinator.class).in(Singleton.class);
 
         // Data layer
+        bind(ConnectionPool.class).in(Singleton.class);
         bind(DatabaseManager.class).in(Singleton.class);
+        bind(MessageRepository.class).in(Singleton.class);
+        bind(ChannelRepository.class).in(Singleton.class);
 
         // Security
         bind(CredentialManager.class).in(Singleton.class);
 
+        // OAuth
+        bind(OAuthManager.class).in(Singleton.class);
+
         // Slack integration
         bind(SlackApiClient.class).in(Singleton.class);
+        bind(MessageCollector.class).in(Singleton.class);
 
         // Webhook service
         bind(WebhookServer.class).in(Singleton.class);

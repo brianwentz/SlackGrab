@@ -9,29 +9,29 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * SQLite database manager with encryption support
+ * SQLite database manager with connection pooling
  *
- * Provides connection pooling and schema management for local data storage.
- * All data is encrypted at rest using SQLCipher.
+ * Provides schema management and connection access for local data storage.
+ * Uses HikariCP connection pooling for efficient database operations.
  */
 public class DatabaseManager implements ManagedService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
     private final ConfigurationManager configurationManager;
     private final ErrorHandler errorHandler;
+    private final ConnectionPool connectionPool;
 
-    private Connection connection;
     private final Path databaseFile;
 
     @Inject
-    public DatabaseManager(ConfigurationManager configurationManager, ErrorHandler errorHandler) {
+    public DatabaseManager(ConfigurationManager configurationManager, ErrorHandler errorHandler, ConnectionPool connectionPool) {
         this.configurationManager = configurationManager;
         this.errorHandler = errorHandler;
+        this.connectionPool = connectionPool;
         this.databaseFile = configurationManager.getDatabasePath().resolve("slackgrab.db");
 
         logger.info("Database manager initialized. Database file: {}", databaseFile);
@@ -45,19 +45,12 @@ public class DatabaseManager implements ManagedService {
             // Load SQLite JDBC driver
             Class.forName("org.sqlite.JDBC");
 
-            // Create connection
-            String jdbcUrl = "jdbc:sqlite:" + databaseFile.toAbsolutePath();
-            connection = DriverManager.getConnection(jdbcUrl);
-
-            // Enable WAL mode for better concurrency
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute("PRAGMA journal_mode=WAL");
-                stmt.execute("PRAGMA synchronous=NORMAL");
-                stmt.execute("PRAGMA temp_store=MEMORY");
-                stmt.execute("PRAGMA mmap_size=30000000000");
+            // Verify connection pool is ready
+            if (!connectionPool.isReady()) {
+                throw new SQLException("Connection pool is not ready");
             }
 
-            // Initialize database schema
+            // Initialize database schema using a connection from the pool
             initializeSchema();
 
             logger.info("Database manager started successfully");
@@ -72,12 +65,11 @@ public class DatabaseManager implements ManagedService {
         logger.info("Stopping database manager...");
 
         try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                logger.info("Database connection closed");
-            }
-        } catch (SQLException e) {
-            errorHandler.handleError("Error closing database connection", e);
+            // Close the connection pool
+            connectionPool.close();
+            logger.info("Database connection pool closed");
+        } catch (Exception e) {
+            errorHandler.handleError("Error closing connection pool", e);
             throw e;
         }
     }
@@ -88,7 +80,8 @@ public class DatabaseManager implements ManagedService {
     private void initializeSchema() throws SQLException {
         logger.info("Initializing database schema...");
 
-        try (Statement stmt = connection.createStatement()) {
+        try (Connection conn = connectionPool.getConnection();
+             Statement stmt = conn.createStatement()) {
             // Messages table
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS messages (
@@ -190,15 +183,17 @@ public class DatabaseManager implements ManagedService {
     }
 
     /**
-     * Get a database connection
+     * Get a database connection from the pool
      *
-     * @return Active database connection
+     * IMPORTANT: The returned connection MUST be closed (via try-with-resources)
+     * to return it to the pool. Closing does not destroy the connection - it
+     * returns it to the pool for reuse.
+     *
+     * @return Database connection from pool
+     * @throws SQLException If connection cannot be obtained
      */
     public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            throw new SQLException("Database connection is not available");
-        }
-        return connection;
+        return connectionPool.getConnection();
     }
 
     /**
@@ -207,10 +202,6 @@ public class DatabaseManager implements ManagedService {
      * @return true if database is connected and ready
      */
     public boolean isReady() {
-        try {
-            return connection != null && !connection.isClosed();
-        } catch (SQLException e) {
-            return false;
-        }
+        return connectionPool.isReady();
     }
 }
