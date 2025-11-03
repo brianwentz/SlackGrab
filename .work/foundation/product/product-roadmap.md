@@ -10,7 +10,7 @@ Create a Windows 11+ application that uses cutting-edge neural network technolog
 - **Neural Network Accuracy:** 85%+ within 1 week of use
 - **Processing Capacity:** 5000 messages/day smoothly
 - **Channel Support:** Up to 2000 Slack channels
-- **Resource Efficiency:** < 500MB RAM, < 5% CPU average
+- **Resource Efficiency:** < 4GB RAM, < 5% CPU average
 - **GPU Utilization:** Up to 80% GPU RAM when available
 - **User Simplicity:** Zero configuration required
 - **Silent Operation:** No errors shown to users
@@ -70,7 +70,7 @@ Week 9:
 - 5000 messages/day optimization
 - 2000 channel support verified
 - < 1 second scoring latency
-- < 500MB memory enforcement
+- < 4GB memory enforcement
 - < 5% CPU usage average
 - GPU RAM limited to 80%
 - Resource throttling implementation
@@ -119,7 +119,7 @@ Week 12:
 
 **Performance Targets Achieved:**
 - Application startup < 3 seconds
-- Memory < 500MB including models
+- Memory < 4GB including models
 - CPU < 5% during monitoring
 - 5000 messages/day handled
 - 2000 channels supported
@@ -279,7 +279,7 @@ Week 12:
 - All 19 user stories complete
 - Neural network continuously improving
 - 5000 messages/day capacity proven
-- < 500MB memory maintained
+- < 4GB memory maintained
 - Zero configuration achieved
 - Silent errors working
 - Windows 11+ exclusive
@@ -382,7 +382,7 @@ SlackGrab fails if:
 1. Working Slack Apps OAuth (US-002)
 2. Basic neural network training (US-004)
 3. Message data collection (US-003)
-4. Resource monitoring (< 500MB, < 5% CPU)
+4. Resource monitoring (< 4GB, < 5% CPU)
 5. Error handling patterns (US-014)
 
 This roadmap is focused on delivering all 19 user stories with cutting-edge neural network intelligence, three-level feedback, and zero user friction. Everything else is secondary or excluded.

@@ -116,7 +116,7 @@
 - [ ] Handle 5000 messages/day smoothly
 - [ ] Support up to 2000 Slack channels
 - [ ] Scoring latency < 1 second per message
-- [ ] Memory usage < 500MB with neural network
+- [ ] Memory usage < 4GB with neural network
 - [ ] CPU usage < 5% during monitoring
 - [ ] GPU acceleration when available
 - [ ] Efficient batch processing for bulk messages
@@ -193,7 +193,7 @@
 
 ### System Performance
 - [ ] Application startup time < 3 seconds
-- [ ] Memory footprint < 500MB including models
+- [ ] Memory footprint < 4GB including models
 - [ ] CPU usage < 5% average during monitoring
 - [ ] Message importance calculation < 1 second
 - [ ] Slack Apps API response time < 100ms
@@ -329,7 +329,7 @@
 - [ ] Neural network showing continuous improvement
 - [ ] Slack Apps integration stable
 - [ ] Silent error recovery working
-- [ ] Resource limits enforced (< 500MB, < 5% CPU)
+- [ ] Resource limits enforced (< 4GB, < 5% CPU)
 - [ ] Windows 11+ compatibility verified
 - [ ] Three-level feedback functional
 
@@ -337,7 +337,7 @@
 - [ ] GPU acceleration on Intel integrated graphics
 - [ ] 5000 messages/day sustained load
 - [ ] 2000 channel capacity verified
-- [ ] Memory stays under 500MB
+- [ ] Memory stays under 4GB
 - [ ] CPU fallback working properly
 - [ ] 30-day history processing
 

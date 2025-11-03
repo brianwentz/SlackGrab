@@ -171,7 +171,7 @@
 - [ ] Handle 5000 messages/day smoothly
 - [ ] Support up to 2000 Slack channels
 - [ ] Scoring latency under 1 second per message
-- [ ] Memory usage under 500MB with neural network
+- [ ] Memory usage under 4GB with neural network
 - [ ] CPU usage < 5% during monitoring
 - [ ] GPU acceleration when available
 - [ ] Efficient batch processing for bulk messages

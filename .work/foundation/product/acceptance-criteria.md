@@ -4,7 +4,7 @@
 
 ### Performance Requirements
 - Application startup time: < 3 seconds
-- Memory footprint: < 500MB including neural network models
+- Memory footprint: < 4GB including neural network models
 - CPU usage during monitoring: < 5% average
 - Message importance calculation: < 1 second per message (background processing acceptable)
 - Slack Apps API response time: < 100ms
@@ -172,7 +172,7 @@
 - **Given** system under load
 - **When** resources constrained
 - **Then**
-  - Memory usage < 500MB total
+  - Memory usage < 4GB total
   - CPU usage < 5% average
   - GPU RAM usage limited to 80%
   - Training pauses if CPU > 80%

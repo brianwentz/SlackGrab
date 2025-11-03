@@ -103,7 +103,7 @@ SlackGrab is an intelligent Windows 11+ desktop application that helps individua
 
 ### NFR1: Performance
 - **NFR1.1:** Application startup < 3 seconds
-- **NFR1.2:** Memory usage < 500MB including models
+- **NFR1.2:** Memory usage < 4GB including models
 - **NFR1.3:** CPU usage < 5% during monitoring
 - **NFR1.4:** Message scoring < 1 second latency
 - **NFR1.5:** Slack Apps API response time < 100ms
@@ -255,7 +255,7 @@ SlackGrab is an intelligent Windows 11+ desktop application that helps individua
 - Neural network shows continuous incremental improvement
 - Handles 5000 messages/day smoothly
 - Supports 2000 channels efficiently
-- < 500MB memory usage maintained
+- < 4GB memory usage maintained
 - < 5% CPU usage average
 - GPU acceleration working (80% RAM max)
 - Silent error recovery reliable

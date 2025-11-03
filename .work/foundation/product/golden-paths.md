@@ -162,7 +162,7 @@ Golden paths represent the critical user journeys that must work flawlessly for 
 **Week 2: Stable Performance**
 1. Neural network continuously improving
 2. 85%+ accuracy achievable
-3. Resource usage < 500MB RAM
+3. Resource usage < 4GB RAM
 4. GPU usage stays under 80% limit
 5. CPU fallback works when needed
 6. Silent operation throughout
@@ -191,7 +191,7 @@ Golden paths represent the critical user journeys that must work flawlessly for 
    - Handles 5000 messages/day smoothly
    - Supports up to 2000 Slack channels
    - Scoring latency < 1 second per message
-   - Memory usage < 500MB with neural network
+   - Memory usage < 4GB with neural network
    - CPU usage < 5% during monitoring
    - GPU acceleration when available
    - Efficient batch processing
@@ -216,7 +216,7 @@ Golden paths represent the critical user journeys that must work flawlessly for 
 - 5000 messages/day processed
 - 2000 channels handled
 - < 1 second scoring maintained
-- < 500MB memory usage
+- < 4GB memory usage
 - < 5% CPU usage average
 - Resource limits enforced
 
@@ -252,7 +252,7 @@ Golden paths represent the critical user journeys that must work flawlessly for 
 7. Logs issues for debugging if needed
 
 **Resource Exhaustion Handling**
-1. Memory approaches 500MB limit
+1. Memory approaches 4GB limit
 2. Old training data pruned automatically
 3. Neural network complexity managed
 4. GPU RAM limit (80%) enforced
@@ -364,7 +364,7 @@ Before any release, validate:
 
 ### Performance Validation (Per Acceptance Criteria)
 - [ ] Application startup < 3 seconds
-- [ ] Memory footprint < 500MB including models
+- [ ] Memory footprint < 4GB including models
 - [ ] CPU usage < 5% average during monitoring
 - [ ] Message scoring < 1 second per message
 - [ ] 5000 messages/day throughput achieved
@@ -409,7 +409,7 @@ Before any release, validate:
 - Neural network accuracy: > 85% after 1 week
 - Processing capacity: 5000 msgs/day
 - Channel support: 2000 channels
-- Resource usage: < 500MB RAM, < 5% CPU
+- Resource usage: < 4GB RAM, < 5% CPU
 - GPU usage: Up to 80% RAM
 - Error recovery: 100% silent
 
