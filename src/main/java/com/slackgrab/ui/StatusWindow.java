@@ -3,6 +3,7 @@ package com.slackgrab.ui;
 import com.google.inject.Inject;
 import com.slackgrab.core.ErrorHandler;
 import com.slackgrab.data.DatabaseManager;
+import com.slackgrab.security.CredentialManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,12 +11,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Status display window for SlackGrab
  *
  * Shows current application status including:
  * - Connection status (connected/disconnected)
+ * - Workspace name (if connected)
  * - Last sync timestamp
  * - Messages collected count
  * - Current operational state (syncing, idle, error)
@@ -28,9 +31,11 @@ public class StatusWindow {
 
     private final ErrorHandler errorHandler;
     private final DatabaseManager databaseManager;
+    private final CredentialManager credentialManager;
 
     private JFrame frame;
     private JLabel connectionStatusLabel;
+    private JLabel workspaceLabel;
     private JLabel lastSyncLabel;
     private JLabel messagesCountLabel;
     private JLabel currentStateLabel;
@@ -38,9 +43,10 @@ public class StatusWindow {
     private boolean visible = false;
 
     @Inject
-    public StatusWindow(ErrorHandler errorHandler, DatabaseManager databaseManager) {
+    public StatusWindow(ErrorHandler errorHandler, DatabaseManager databaseManager, CredentialManager credentialManager) {
         this.errorHandler = errorHandler;
         this.databaseManager = databaseManager;
+        this.credentialManager = credentialManager;
     }
 
     /**
@@ -93,7 +99,7 @@ public class StatusWindow {
         // Create frame
         frame = new JFrame("SlackGrab Status");
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        frame.setSize(400, 250);
+        frame.setSize(400, 300);
         frame.setResizable(false);
 
         // Center on screen
@@ -114,6 +120,10 @@ public class StatusWindow {
         // Status fields
         connectionStatusLabel = createStatusLabel("Connection Status:");
         contentPanel.add(connectionStatusLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        workspaceLabel = createStatusLabel("Workspace:");
+        contentPanel.add(workspaceLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         lastSyncLabel = createStatusLabel("Last Sync:");
@@ -156,6 +166,9 @@ public class StatusWindow {
             // Update connection status
             updateConnectionStatus();
 
+            // Update workspace information
+            updateWorkspaceInfo();
+
             // Update last sync time
             updateLastSyncTime();
 
@@ -176,21 +189,43 @@ public class StatusWindow {
      * Update connection status display
      */
     private void updateConnectionStatus() {
-        // Check if database is accessible (indicates app is running)
+        // Check if OAuth token exists (indicates connected to Slack)
         boolean connected = false;
         try {
-            connected = databaseManager != null && databaseManager.isReady();
+            connected = credentialManager != null && credentialManager.hasAccessToken();
         } catch (Exception e) {
-            logger.warn("Failed to check database health", e);
+            logger.warn("Failed to check connection status", e);
         }
 
-        String status = connected ? "Connected" : "Disconnected";
+        String status = connected ? "Connected to Slack" : "Not Connected";
         String color = connected ? "green" : "red";
 
         connectionStatusLabel.setText(String.format(
             "<html>Connection Status: <font color='%s'>%s</font></html>",
             color, status
         ));
+    }
+
+    /**
+     * Update workspace information display
+     */
+    private void updateWorkspaceInfo() {
+        try {
+            // Get workspace/team ID if available
+            Optional<String> teamId = credentialManager.getTeamId();
+
+            if (teamId.isPresent()) {
+                // In production, we would query Slack API for team name
+                // For now, just show the team ID
+                workspaceLabel.setText("Workspace: " + teamId.get());
+            } else {
+                workspaceLabel.setText("Workspace: Not Connected");
+            }
+
+        } catch (Exception e) {
+            logger.warn("Failed to get workspace info", e);
+            workspaceLabel.setText("Workspace: Unknown");
+        }
     }
 
     /**

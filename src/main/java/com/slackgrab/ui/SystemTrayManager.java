@@ -3,6 +3,9 @@ package com.slackgrab.ui;
 import com.google.inject.Inject;
 import com.slackgrab.core.ErrorHandler;
 import com.slackgrab.core.ManagedService;
+import com.slackgrab.core.ServiceCoordinator;
+import com.slackgrab.oauth.OAuthManager;
+import com.slackgrab.security.CredentialManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,12 +13,14 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import javax.imageio.ImageIO;
 
 /**
  * Windows system tray integration manager
  *
  * Provides system tray icon with right-click context menu for:
+ * - Connecting to Slack workspace (OAuth flow)
  * - Viewing application status
  * - Accessing settings (minimal, zero-config principle)
  * - Graceful application exit
@@ -28,6 +33,9 @@ public class SystemTrayManager implements ManagedService {
     private final ErrorHandler errorHandler;
     private final AutoStartManager autoStartManager;
     private final StatusWindow statusWindow;
+    private final ServiceCoordinator serviceCoordinator;
+    private final OAuthManager oauthManager;
+    private final CredentialManager credentialManager;
 
     private TrayIcon trayIcon;
     private SystemTray systemTray;
@@ -37,10 +45,16 @@ public class SystemTrayManager implements ManagedService {
     public SystemTrayManager(
             ErrorHandler errorHandler,
             AutoStartManager autoStartManager,
-            StatusWindow statusWindow) {
+            StatusWindow statusWindow,
+            ServiceCoordinator serviceCoordinator,
+            OAuthManager oauthManager,
+            CredentialManager credentialManager) {
         this.errorHandler = errorHandler;
         this.autoStartManager = autoStartManager;
         this.statusWindow = statusWindow;
+        this.serviceCoordinator = serviceCoordinator;
+        this.oauthManager = oauthManager;
+        this.credentialManager = credentialManager;
     }
 
     /**
@@ -82,6 +96,9 @@ public class SystemTrayManager implements ManagedService {
 
             started = true;
             logger.info("System tray icon initialized successfully");
+
+            // Check connection status and notify user
+            checkConnectionStatus();
 
         } catch (Exception e) {
             errorHandler.handleError("Failed to initialize system tray", e);
@@ -162,6 +179,14 @@ public class SystemTrayManager implements ManagedService {
     private PopupMenu createPopupMenu() {
         PopupMenu popup = new PopupMenu();
 
+        // Connect to Slack (only show if not connected)
+        if (!credentialManager.hasAccessToken()) {
+            MenuItem connectItem = new MenuItem("Connect to Slack");
+            connectItem.addActionListener(e -> initiateOAuthFlow());
+            popup.add(connectItem);
+            popup.addSeparator();
+        }
+
         // Show Status
         MenuItem statusItem = new MenuItem("Show Status");
         statusItem.addActionListener(e -> showStatus());
@@ -229,14 +254,26 @@ public class SystemTrayManager implements ManagedService {
         logger.info("Exit requested from system tray");
 
         try {
-            // Perform graceful shutdown
-            // The shutdown hook will handle cleanup
+            // Remove tray icon first
+            if (systemTray != null && trayIcon != null) {
+                systemTray.remove(trayIcon);
+                logger.debug("Tray icon removed");
+            }
+
+            // Shutdown all services gracefully
+            logger.info("Initiating graceful shutdown of all services...");
+            serviceCoordinator.shutdown();
+            logger.info("All services shut down successfully");
+
+            // Exit JVM
+            // The shutdown hook in SlackGrabApplication will be called, but
+            // services are already stopped, so it will be a no-op
             System.exit(0);
 
         } catch (Exception e) {
             errorHandler.handleError("Error during application exit", e);
             // Force exit if graceful shutdown fails
-            System.exit(1);
+            Runtime.getRuntime().halt(1);
         }
     }
 
@@ -291,5 +328,116 @@ public class SystemTrayManager implements ManagedService {
      */
     public boolean isStarted() {
         return started;
+    }
+
+    /**
+     * Check connection status on startup and notify user
+     */
+    private void checkConnectionStatus() {
+        try {
+            if (credentialManager.hasAccessToken()) {
+                // Already authenticated
+                logger.info("Already connected to Slack");
+                updateTrayTooltip("SlackGrab - Connected");
+
+                // Show subtle notification
+                showInfoNotification("Connected to Slack workspace");
+            } else {
+                // Need to connect
+                logger.info("Not connected to Slack - user needs to authorize");
+                updateTrayTooltip("SlackGrab - Not Connected");
+
+                // Show notification prompting user to connect
+                trayIcon.displayMessage(
+                    "Welcome to SlackGrab",
+                    "Right-click the tray icon and select 'Connect to Slack' to get started.",
+                    TrayIcon.MessageType.INFO
+                );
+            }
+        } catch (Exception e) {
+            errorHandler.handleError("Failed to check connection status", e);
+        }
+    }
+
+    /**
+     * Update tray icon tooltip
+     */
+    private void updateTrayTooltip(String tooltip) {
+        if (trayIcon != null) {
+            trayIcon.setToolTip(tooltip);
+        }
+    }
+
+    /**
+     * Initiate OAuth flow by opening browser to Slack authorization URL
+     */
+    private void initiateOAuthFlow() {
+        try {
+            logger.info("Initiating OAuth flow...");
+
+            // Get OAuth URL from OAuthManager
+            String authUrl = oauthManager.generateAuthorizationUrl();
+            logger.debug("Generated OAuth URL: {}", authUrl);
+
+            // Open in default browser
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new URI(authUrl));
+
+                // Show notification
+                trayIcon.displayMessage(
+                    "Slack Authorization",
+                    "Browser opened for Slack authorization. Please authorize SlackGrab to access your workspace.",
+                    TrayIcon.MessageType.INFO
+                );
+
+                logger.info("OAuth flow initiated successfully");
+            } else {
+                logger.error("Desktop browsing not supported");
+                trayIcon.displayMessage(
+                    "Browser Error",
+                    "Unable to open browser automatically. Please visit the OAuth URL manually.",
+                    TrayIcon.MessageType.ERROR
+                );
+            }
+
+        } catch (IllegalStateException e) {
+            // OAuth credentials not configured
+            logger.error("OAuth credentials not configured", e);
+            errorHandler.handleError("OAuth configuration error", e);
+            trayIcon.displayMessage(
+                "Configuration Error",
+                "Slack OAuth credentials not configured. Please set SLACK_CLIENT_ID and SLACK_CLIENT_SECRET environment variables.",
+                TrayIcon.MessageType.ERROR
+            );
+        } catch (Exception e) {
+            logger.error("Failed to initiate OAuth flow", e);
+            errorHandler.handleError("Failed to initiate OAuth", e);
+            trayIcon.displayMessage(
+                "Connection Error",
+                "Failed to open browser for Slack authorization. Please try again.",
+                TrayIcon.MessageType.ERROR
+            );
+        }
+    }
+
+    /**
+     * Update connection status after successful OAuth
+     * This can be called by other components when OAuth completes
+     */
+    public void onOAuthSuccess() {
+        try {
+            logger.info("OAuth successful, updating tray status");
+            updateTrayTooltip("SlackGrab - Connected");
+
+            // Recreate menu to remove "Connect to Slack" option
+            if (trayIcon != null) {
+                PopupMenu newMenu = createPopupMenu();
+                trayIcon.setPopupMenu(newMenu);
+            }
+
+            showInfoNotification("Successfully connected to Slack workspace!");
+        } catch (Exception e) {
+            errorHandler.handleError("Failed to update tray after OAuth success", e);
+        }
     }
 }

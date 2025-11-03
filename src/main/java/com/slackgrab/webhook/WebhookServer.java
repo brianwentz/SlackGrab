@@ -7,6 +7,7 @@ import com.slackgrab.core.ManagedService;
 import com.slackgrab.oauth.OAuthManager;
 import com.slackgrab.oauth.OAuthManager.OAuthException;
 import com.slackgrab.oauth.OAuthManager.OAuthResult;
+import com.slackgrab.ui.SystemTrayManager;
 import io.javalin.Javalin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class WebhookServer implements ManagedService {
     private final ConfigurationManager configurationManager;
     private final ErrorHandler errorHandler;
     private final OAuthManager oauthManager;
+    private SystemTrayManager systemTrayManager; // Injected lazily to avoid circular dependency
 
     private Javalin app;
     private boolean running = false;
@@ -41,6 +43,14 @@ public class WebhookServer implements ManagedService {
         this.configurationManager = configurationManager;
         this.errorHandler = errorHandler;
         this.oauthManager = oauthManager;
+    }
+
+    /**
+     * Set SystemTrayManager reference (called after injection to avoid circular dependency)
+     */
+    @Inject
+    public void setSystemTrayManager(SystemTrayManager systemTrayManager) {
+        this.systemTrayManager = systemTrayManager;
     }
 
     @Override
@@ -99,6 +109,11 @@ public class WebhookServer implements ManagedService {
                         OAuthResult result = oauthManager.exchangeCodeForToken(code);
 
                         logger.info("OAuth authorization successful for team: {}", result.teamName());
+
+                        // Notify system tray of successful connection
+                        if (systemTrayManager != null) {
+                            systemTrayManager.onOAuthSuccess();
+                        }
 
                         ctx.html(generateSuccessPage(
                             "Authorization Successful!",
