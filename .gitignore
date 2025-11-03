@@ -1,11 +1,23 @@
+# Build outputs
 HELP.md
 .gradle
-.env
-.claude
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+# Gradle properties (may contain sensitive data)
+gradle.properties
+
+# Environment and secrets
+.env
+token
+*.key
+*.pem
+credentials.json
+
+# IDE settings (project-specific settings should not be committed)
+.claude
 
 ### STS ###
 .apt_generated
@@ -38,11 +50,47 @@ out/
 ### VS Code ###
 .vscode/
 
+# Generated code
 src/generated/*
 
-docker/database/mysql/db
+# Local database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
 
-gradle.properties
+# Log files
+logs/
+*.log
+*.log.*
 
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# OS files
 .DS_Store
-token
+Thumbs.db
+desktop.ini
+
+# Application-specific
+# SQLite databases (local user data)
+*.db.enc
+# Neural network models (user-specific)
+models/*.bin
+models/*.model
+# Cache directories
+cache/
+temp/
+
+# Testing
+coverage/
+test-results/
+.pytest_cache/
+
+# Windows shortcuts
+*.lnk
